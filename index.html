@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!--Import Google Icon Font-->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!--Import materialize.css-->
+  <link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection" />
+  <link rel="stylesheet" href="css/main.css">
+  <!--Let browser know website is optimized for mobile-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!--Import jQuery before materialize.js-->
+  <script type="text/javascript" src="js/jquery.min.js"></script>
+  <script type="text/javascript" src="js/materialize.min.js"></script>
+  <script type="text/javascript" src="js/app.js"></script>
+  <script type="text/javascript" src="js/endpoint.js"></script>
+  <script type="text/javascript" src="js/message.js"></script>
+
+  <!-- Main scripts -->
+  <script>
+    let app;
+    $(() => {
+      $('select').material_select();
+      app = new App();
+      $('#btnStart').click((e) => {
+        e.preventDefault();
+        if (app.isStarted) {
+          app.stop();
+          $('#btnStart').html('Start');
+          return;
+        }
+        app.state.serverName = $("#serverName").val();
+        app.state.username = $("#username").val();
+        app.state.password = $("#password").val();
+        app.state.mode = $("input[name='mode']:checked").val();
+        app.state.msgSize = parseInt($("#msgSize").val());
+        app.state.numMsgs = parseInt($("#numMsgs").val());
+        app.state.interval = parseInt($("#interval").val());
+        app.state.ordered = parseInt($('#direction').val());
+        app.state.maxRetransmits = parseInt($("#maxRetransmits").val());
+        app.state.maxPacketLifeTime = parseInt($("#maxPacketLifeTime").val());
+        console.log(`state: ${JSON.stringify(app.state)}`)
+
+        app.onstop = () => {
+          $('#btnStart').html('Start');
+        };
+
+        try {
+          app.start();
+          $('#btnStart').html('Stop');
+        } catch (e) {
+          alert(e);
+        }
+      })
+    })
+  </script>
+</head>
+
+<body>
+  <header>TURN Server Test Tool</header>
+  <div class="container">
+    <div class="row">
+      <form class="col s12">
+        <div class="row">
+          <label>TURN Server Name</label>
+          <input id="serverName" type="text" class="validate" value="ec2-34-209-239-25.us-west-2.compute.amazonaws.com">
+          <div class="col s6">
+            <label>Username</label>
+            <input id="username" type="text" class="validate" value="enobufs">
+          </div>
+          <div class="col s6">
+            <label>Password</label>
+            <input id="password" type="text" class="validate" value="bamboos">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s3">
+            <div class="row">
+              <p>Direction</p>
+              <input type="radio" name="mode" id="mode1" value="upload" />
+              <label for="mode1">Upload</label><br>
+              <input type="radio" name="mode" id="mode2" value="download" />
+              <label for="mode2">Download</label><br>
+              <input type="radio" name="mode" id="mode3" value="loopback" checked />
+              <label for="mode3">Loopback</label><br>
+            </div>
+          </div>
+          <div class="col s3">
+            <div class="row">
+              <label for="msgSize">Message Size</label>
+              <input id="msgSize" type="number" class="validate" value="1024">
+            </div>
+          </div>
+          <div class="col s3">
+            <div class="row">
+              <label for="numMsgs">Number of Messages</label>
+              <input id="numMsgs" type="number" class="validate" value="20">
+            </div>
+          </div>
+          <div class="col s3">
+            <div class="row">
+              <label for="interval">Interval [msec]</label>
+              <input id="interval" type="number" class="validate" value="1000">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <div class="row">
+              <p>Reliability Options</p>
+              <div class="col s4">
+                <label>Ordered</label>
+                <div class="input-field col s12">
+                  <select id="direction">
+                    <option value="0" selected>Default: True</option>
+                    <option value="1">True</option>
+                    <option value="2">False</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col s4">
+                <label for="maxRetransmits">Max Retransmits</label>
+                <input id="maxRetransmits" type="number" class="validate" value="-1">
+              </div>
+              <div class="col s4">
+                <label for="maxPacketLifeTime">Max Packet Life Time</label>
+                <input id="maxPacketLifeTime" type="number" class="validate" value="-1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="btnStart" class="btn waves-effect waves-light">Start</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

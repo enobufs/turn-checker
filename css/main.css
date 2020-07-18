@@ -1,0 +1,23 @@
+body {
+    font-size: 14px;
+    font-family: arial;
+    background: #f4f4f4;
+    line-height: 1.5em;
+}
+
+header {
+    background: rgb(0, 77, 64);
+    color: #fff;
+    padding: 10px;
+    text-align: left;
+    border-top: 2px black solid;
+    border-bottom: 2px black solid;
+    margin-bottom: 10px;
+}
+
+.subHeader {
+    background: #099;
+    color: #ccc;
+    text-align: left;
+    margin-bottom: 10px;
+}
