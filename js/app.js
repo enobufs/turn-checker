@@ -33,6 +33,7 @@ class App {
       serverName: this.state.serverName,
       username: this.state.username,
       password: this.state.password,
+      transport: this.state.transport,
       mode: mode,
       msgSize: this.state.msgSize,
       numMsgs: this.state.numMsgs,

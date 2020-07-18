@@ -33,6 +33,7 @@
         app.state.serverName = $("#serverName").val();
         app.state.username = $("#username").val();
         app.state.password = $("#password").val();
+        app.state.transport = $("input[name='transport']:checked").val();
         app.state.mode = $("input[name='mode']:checked").val();
         app.state.msgSize = parseInt($("#msgSize").val());
         app.state.numMsgs = parseInt($("#numMsgs").val());
@@ -64,18 +65,27 @@
       <form class="col s12">
         <div class="row">
           <label>TURN Server Name</label>
-          <input id="serverName" type="text" class="validate" value="ec2-34-209-239-25.us-west-2.compute.amazonaws.com">
+          <input id="serverName" type="text" class="validate" value="">
           <div class="col s6">
             <label>Username</label>
-            <input id="username" type="text" class="validate" value="enobufs">
+            <input id="username" type="text" class="validate" value="">
           </div>
           <div class="col s6">
             <label>Password</label>
-            <input id="password" type="text" class="validate" value="bamboos">
+            <input id="password" type="password" class="validate" value="">
           </div>
         </div>
         <div class="row">
-          <div class="col s3">
+          <div class="col s6">
+            <div class="row">
+              <p>TURN transport</p>
+              <input type="radio" name="transport" id="tp-udp" value="udp" checked />
+              <label for="tp-udp">UDP</label><br>
+              <input type="radio" name="transport" id="tp-tcp" value="tcp" />
+              <label for="tp-tcp">TCP</label><br>
+            </div>
+          </div>
+          <div class="col s6">
             <div class="row">
               <p>Direction</p>
               <input type="radio" name="mode" id="mode1" value="upload" />
@@ -86,19 +96,21 @@
               <label for="mode3">Loopback</label><br>
             </div>
           </div>
-          <div class="col s3">
+        </div>
+        <div class="row">
+          <div class="col s4">
             <div class="row">
               <label for="msgSize">Message Size</label>
               <input id="msgSize" type="number" class="validate" value="1024">
             </div>
           </div>
-          <div class="col s3">
+          <div class="col s4">
             <div class="row">
               <label for="numMsgs">Number of Messages</label>
-              <input id="numMsgs" type="number" class="validate" value="20">
+              <input id="numMsgs" type="number" class="validate" value="10">
             </div>
           </div>
-          <div class="col s3">
+          <div class="col s4">
             <div class="row">
               <label for="interval">Interval [msec]</label>
               <input id="interval" type="number" class="validate" value="1000">

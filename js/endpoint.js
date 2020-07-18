@@ -36,6 +36,7 @@ class Endpoint {
         this.serverName = config.serverName;
         this.username = config.username;
         this.password = config.password;
+        this.transport = config.transport;
         this.mode = config.mode;
         this.msgSize = config.msgSize;
         this.numMsgs = config.numMsgs;
@@ -49,7 +50,7 @@ class Endpoint {
         this.sessId = null;
         this.dc = null;
         this.state = State.Closed;
-        this.timer = null;
+        this.sendTimer = null;
        this.ondescription = null;
     }
 
@@ -58,16 +59,19 @@ class Endpoint {
     }
 
     close() {
-        if (this.timer) {
-            clearInterval(this.timer);
-            this.timer = null;
+        if (this.sendTimer) {
+            clearInterval(this.sendTimer);
+            this.sendTimer = null;
         }
-        if (!this.pc) {
-            return;
+        if (this.statsTimer) {
+            clearInterval(this.statsTimer);
+            this.statsTimer = null;
         }
-        this.pc.close();
-        if (this.onclose) {
-            this.onclose();
+        if (this.dc) {
+            this.dc.close();
+        }
+        if (this.pc) {
+            this.pc.close();
         }
     }
 
@@ -103,10 +107,9 @@ class Endpoint {
         }, (err) => {
             console.log(`[${this.name}] createOffer failed:`, err);
         });
-        console.log(`[${this.name}] createOffer started`);
     }
 
-    onTick() {
+    onSendTick() {
         if (this.state === State.Ready) {
             if (this.mode !== Mode.Download) {
                 console.log(`[${this.name}] sending ${this.msgSize} bytes (seqNum=${this.seqNum} of ${this.numMsgs})`);
@@ -172,17 +175,17 @@ class Endpoint {
             const bytes = smsg.marshal();
             this.dc.send(bytes);
             this.state = State.Ready;
-            if (!this.timer) {
+            if (!this.sendTimer) {
                 console.log(`[${this.name}]setInterval: %d`, this.interval);
-                this.timer = setInterval(this.onTick.bind(this), this.interval);
+                this.sendTimer = setInterval(this.onSendTick.bind(this), this.interval);
             }
         } else if (rmsg.type === Message.Type.SyncAck) {
             console.log(`[${this.name}] received SyncAck`);
             console.dir(rmsg);
             this.state = State.Ready;
-            if (!this.timer) {
+            if (!this.sendTimer) {
                 console.log(`[${this.name}]setInterval: %d`, this.interval);
-                this.timer = setInterval(this.onTick.bind(this), this.interval);
+                this.sendTimer = setInterval(this.onSendTick.bind(this), this.interval);
             }
         } else if (rmsg.type === Message.Type.Data) {
             const dataLen = rmsg.padding.byteLength + 8;
@@ -205,12 +208,14 @@ class Endpoint {
         console.log(`[${this.name}] Starting creating peer connection`);
         const config = {
             iceServers: [{
-                urls: [`turn:${this.serverName}?transport=udp`],
+                urls: [`turn:${this.serverName}?transport=${this.transport}`],
                 username: this.username,
                 credential: this.password
             }],
             iceTransportPolicy: 'relay'
         };
+        console.log(`[${this.name}] turn server uri: %s`, config.iceServers[0].urls[0]);
+
         this.pc = new RTCPeerConnection(config);
         console.log(`[${this.name}] created local peer connection object this.pc`);
         this.pc.onicecandidate = (e) => this.onIceCandidate(e);
@@ -220,7 +225,31 @@ class Endpoint {
         this.pc.onsignalingstatechange = (e) => {
             console.log(`[${this.name}] signaling state: %s`, this.pc.signalingState);
         };
+        /*
+        if (!this.statsTimer) {
+            this.statsTimer = setInterval(() => {
+                this.onStatTick();
+            }, 2000);
+        }
+        */
     }
+
+    /*
+    onStatTick() {
+        this.pc.getStats(res => {
+            res.result().forEach(result => {
+                var item = {};
+                result.names().forEach(name => {
+                    item[name] = result.stat(name);
+                });
+                item.id = result.id;
+                item.type = result.type;
+                item.timestamp = result.timestamp;
+                console.log("stitem:", item);
+            });
+        });
+    }
+    */
 
     setUpDataChannel() {
         this.dc.binaryType = "arraybuffer";
@@ -283,7 +312,6 @@ class Endpoint {
             }, (err) => {
                 console.log(`[${this.name}] createAnswer failed:`, err);
             });
-            console.log(`[${this.name}] createAnswer started`);
         }
     }
 
